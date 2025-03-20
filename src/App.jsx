@@ -211,6 +211,47 @@ export default function App() {
   const [faceWidth, setFaceWidth] = useState(0);
   const [faceHeight, setFaceHeight] = useState(0);
   const [isResizing, setIsResizing] = useState(false);
+  const [modelPosition, setModelPosition] = useState({ x: 0, y: 0, z: 0 });
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      setModelPosition((prev) => {
+        const step = 0.1; // Adjust step size as needed
+        switch (event.key) {
+          case "ArrowUp":
+            return { ...prev, y: prev.y + step };
+          case "ArrowDown":
+            return { ...prev, y: prev.y - step };
+          case "ArrowLeft":
+            return { ...prev, x: prev.x - step };
+          case "ArrowRight":
+            return { ...prev, x: prev.x + step };
+          case "w":
+            return { ...prev, z: prev.z - step };
+          case "s":
+            return { ...prev, z: prev.z + step };
+          default:
+            return prev;
+        }
+      });
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (modelMatrix) {
+      const newMatrix = modelMatrix.clone();
+      newMatrix.setPosition(
+        new THREE.Vector3(modelPosition.x, modelPosition.y, modelPosition.z)
+      );
+      setModelMatrix(newMatrix);
+    }
+  }, [modelPosition, modelMatrix]);
+
   useEffect(() => {
     async function initMediaPipe() {
       const vision = await FilesetResolver.forVisionTasks(
